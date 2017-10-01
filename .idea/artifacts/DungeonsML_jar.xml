@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="DungeonsML:jar">
+    <output-path>$USER_HOME$/Desktop/edfiderierieieieiiSERVERSERVERSERSEVrrfuorgioåtgitogtiotgitgi/plugins</output-path>
+    <root id="archive" name="DungeonsML.jar">
+      <element id="module-output" name="DungeonsML" />
+    </root>
+  </artifact>
+</component>
