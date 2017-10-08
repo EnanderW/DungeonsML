@@ -1,3 +1,4 @@
 name: Dungeons
 main: com.medievallords.Dungeons
 version: 1.0
+depend: [MythicMobs]

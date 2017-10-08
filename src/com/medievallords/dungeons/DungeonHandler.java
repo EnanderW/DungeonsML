@@ -3,18 +3,16 @@ package com.medievallords.dungeons;
 import com.medievallords.Dungeons;
 import com.medievallords.dungeons.instance.DungeonInstance;
 import com.medievallords.player.DPlayer;
-import com.medievallords.spawners.Spawner;
 import com.medievallords.utils.LocationUtil;
 import com.medievallords.utils.WorldLoader;
-import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
+import io.lumine.xikage.mythicmobs.MythicMobs;
+import io.lumine.xikage.mythicmobs.spawning.spawners.MythicSpawner;
 import lombok.Getter;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,32 +62,15 @@ public class DungeonHandler {
 
             dungeons.add(dungeon);
 
-            ConfigurationSection spawnerSection = cs.getConfigurationSection(key + ".Spawners");
-            if (spawnerSection != null) {
-                for (String spawnerName : spawnerSection.getKeys(false)) {
-                    Location location = null;
-                    if (spawnerSection.getString(spawnerName + ".Location") != null) {
-                        location = LocationUtil.deserializeLocation(spawnerSection.getString(spawnerName + ".Location"));
-                    }
-
-                    double radius = spawnerSection.getDouble(spawnerName + ".Radius");
-
-                    HashMap<String, Integer> mobMap = new HashMap<>();
-
-                    if (spawnerSection.getStringList(spawnerName + ".Mobs") != null) {
-                        for (String mobs : spawnerSection.getStringList(spawnerName + ".Mobs")) {
-                            String[] split = mobs.split(",");
-                            mobMap.put(split[0], Integer.parseInt(split[1]));
-                        }
-                    }
-
-                    int maxSpawns = spawnerSection.getInt(spawnerName + ".MaxSpawns");
-
-                    Spawner spawner = new Spawner(spawnerName, dungeon, location, mobMap, radius);
-                    spawner.setMaxSpawns(maxSpawns);
-                    dungeon.getSpawners().add(spawner);
+            List<MythicSpawner> spawnersToAdd = new ArrayList<>();
+            List<MythicSpawner> publicSpawners = MythicMobs.inst().getSpawnerManager().listSpawners;
+            for (MythicSpawner spawner : publicSpawners) {
+                if (spawner.getWorldName().equalsIgnoreCase(world.getName())) {
+                    spawnersToAdd.add(spawner);
                 }
             }
+
+            dungeon.setSpawners(spawnersToAdd);
         }
     }
 
@@ -113,27 +94,8 @@ public class DungeonHandler {
             cs.createSection(name);
             cs.set(name + ".Locations", ser);
 
-            if (world != null)
-            cs.set(name + ".World", world.getName());
-
-            ConfigurationSection spawnerSection = cs.createSection(name + ".Spawners");
-
-            for (int s = 0; s < dungeon.getSpawners().size(); s++) {
-                Spawner spawner = dungeon.getSpawners().get(s);
-                String spawnerName = spawner.getName();
-                spawnerSection.createSection(spawnerName);
-                List<String> mobString = new ArrayList<>();
-                for (String mobName : spawner.getMobs().keySet()) {
-                    int amount = spawner.getMobs().get(mobName);
-                    mobString.add(mobName + "," + amount);
-                }
-
-                spawnerSection.set(spawnerName + ".Mobs", mobString);
-                if (world != null)
-                spawnerSection.set(spawnerName + ".Location", LocationUtil.serializeLocation(spawner.getLocation(world)));
-
-                spawnerSection.set(spawnerName + ".Radius", spawner.getRadius());
-                spawnerSection.set(spawnerName + ".MaxSpawns", spawner.getMaxSpawns());
+            if (world != null) {
+                cs.set(name + ".World", world.getName());
             }
         }
 
@@ -157,41 +119,6 @@ public class DungeonHandler {
         }
 
         return null;
-    }
-
-    public void createSpawner(String name, Dungeon dungeon, Location location) {
-        Spawner spawner = new Spawner(name, dungeon, location);
-        dungeon.getSpawners().add(spawner);
-    }
-
-    public Spawner getSpawner(String name) {
-        for (int i = 0; i < dungeons.size(); i++) {
-            Dungeon dungeon = dungeons.get(i);
-            for (int l = 0; l < dungeon.getSpawners().size(); l++) {
-                Spawner spawner = dungeon.getSpawners().get(l);
-                if (spawner.getName().equalsIgnoreCase(name)) {
-                    return spawner;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    public List<Spawner> getSpawners(Chunk chunk) {
-        List<Spawner> spawners = new ArrayList<>();
-
-        for (int i = 0; i < dungeons.size(); i++) {
-            Dungeon dungeon = dungeons.get(i);
-            for (int l = 0; l < dungeon.getSpawners().size(); l++) {
-                Spawner spawner = dungeon.getSpawners().get(l);
-                if (spawner.getLocation(chunk.getWorld()).getChunk().equals(chunk)) {
-                    spawners.add(spawner);
-                }
-            }
-        }
-
-        return spawners;
     }
 
     public DPlayer getDPlayer(UUID uuid) {
@@ -222,12 +149,15 @@ public class DungeonHandler {
     public void cancelAll() {
         for (DungeonInstance instance : instances) {
             World world = instance.getWorld();
-            for (int i = 0; i < world.getPlayers().size(); i++) {
+            for (int i = world.getPlayers().size() -  1; i >= 0; i--) {
                 Player player = world.getPlayers().get(i);
                 player.teleport(new Location(Bukkit.getWorld("world"), -729.5, 104, 317.5));
             }
 
-            instance.cancelTask();
+            MythicMobs.inst().getSpawnerManager().listSpawners.removeAll(instance.getSpawners());
+            Bukkit.unloadWorld(world, false);
+            WorldLoader.deleteWorld(world.getWorldFolder());
+            Bukkit.getWorlds().remove(world);
         }
     }
 }

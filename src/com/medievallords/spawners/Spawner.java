@@ -74,7 +74,7 @@ public class Spawner {
 
                 MythicMobs.inst().getMobManager().spawnMob(mob, random);
             } else {
-                for (int i = 1; i < amount; i++) {
+                for (int i = 0; i < amount; i++) {
                     Location random = LocationUtil.findSafeSpot(spawnLocation, radius);
                     if (!random.getChunk().isLoaded()) {
                         random.getChunk().load();

@@ -6,6 +6,9 @@ import com.medievallords.utils.Command;
 import com.medievallords.utils.CommandArgs;
 import com.medievallords.utils.MessageManager;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +18,9 @@ import java.util.List;
  *
  */
 
-public class TestJoinCommand extends BaseCommand {
+public class TestJoinCommand extends BaseCommand implements Listener {
+
+    private List<Player> players = new ArrayList<>();
 
     @Command(name = "dungeon.join", inGameOnly = true)
     public void execute(CommandArgs commandArgs) {
@@ -28,8 +33,18 @@ public class TestJoinCommand extends BaseCommand {
             return;
         }
 
-        List<Player> players = new ArrayList<>();
-        players.add(player);
+        if (players.isEmpty()) {
+            MessageManager.sendMessage(player, "&cNot enough players");
+            return;
+        }
+
         dungeon.startDungeon(players);
+        players.clear();
+    }
+
+    @EventHandler
+    public void onSneak(PlayerToggleSneakEvent event) {
+        if (players.contains(event.getPlayer())) return;
+        players.add(event.getPlayer());
     }
 }

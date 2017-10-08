@@ -52,6 +52,7 @@ public class Creator {
 
     public World createWorld(World template, int id) {
         long current = System.currentTimeMillis();
+        template.save();
         WorldCreator creator = new WorldCreator("dungeonInstance_" + id + "_" + template.getName() + "_" + System.currentTimeMillis());
         com.medievallords.utils.WorldLoader.copyWorld(template.getWorldFolder(), new File(server.getWorldContainer(), creator.name()));
         final World world = createWorld(creator);
