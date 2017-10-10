@@ -5,6 +5,7 @@ import com.medievallords.utils.DungeonLineConfig;
 import com.medievallords.utils.ItemBuilder;
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
+import io.lumine.xikage.mythicmobs.drops.MythicDropTable;
 import io.lumine.xikage.mythicmobs.items.MythicItem;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -47,6 +48,7 @@ public class MechanicDropItem extends Mechanic implements ITargetLocation {
                 }
             }
         }
+
     }
 
     @Override

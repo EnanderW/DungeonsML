@@ -25,8 +25,8 @@ public class Mechanic {
     }
 
     public void runMechanic(MechanicData data) {
-        if (this instanceof MechanicRedstone) {
-            ((MechanicRedstone) this).cast();
+        if (this instanceof MechanicBlock) {
+            ((MechanicBlock) this).cast();
         }
 
         if (target instanceof LocationTarget) {
@@ -57,8 +57,8 @@ public class Mechanic {
                 return new MechanicMessage(new DungeonLineConfig(data));
             case "spawnentity":
                 return new MechanicSpawnEntity(new DungeonLineConfig(data));
-            case "redstone":
-                return new MechanicRedstone(new DungeonLineConfig(data));
+            case "block":
+                return new MechanicBlock(new DungeonLineConfig(data));
         }
 
         return null;
